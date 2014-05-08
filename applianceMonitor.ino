@@ -70,30 +70,25 @@ void setup()
   pinMode(DRYER_PIN, INPUT);
 }  
 
-void enterInit(unsigned char appliance)
-{
-  counter[appliance] = 0;
-}
-
-void enterRunning(unsigned char appliance)
-{
-  counter[appliance] = millis();
-}
-
-void enterUnknown(unsigned char appliance)
-{
-}
-
-void enterDone(unsigned char appliance)
-{
-}
 
 void loop()
 {
-#ifdef DEBUG
-  Console.println("still alive...");
-#endif
-  delay(5000);
+  unsigned char i;
+  for(i = 0; i < 2; i++)
+  {
+    switch(state[i])
+    {
+      default:
+      case stateInit_e:
+      break;
+      case stateRunning_e:
+      break;
+      case stateUnknown_e:
+      break;
+      case stateDone_e:
+      break;
+    }
+  }
 }
 
 // this function creates a file into the linux processor that contains a shell script
