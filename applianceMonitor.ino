@@ -27,18 +27,20 @@ LiquidCrystal lcd(13, 12, 11, 10, 9, 8);
 #define WASHER_PIN A1
 #define DRYER 1
 #define DRYER_PIN A5
+#define END_OF_CYCLE_TIMEOUT 60000
 
 // States
 enum
 {
   stateInit_e = 0,
   stateRunning_e,
-  stateUnknown_e,
-  stateDone_e
+  stateUnknown_e
 }; 
 
 unsigned long counter[2];
 unsigned char state[2];
+const int pins[2] = {WASHER_PIN, DRYER_PIN};
+const String message[2]={"washer","dryer"};
 
 void setup()
 {
@@ -56,11 +58,13 @@ void setup()
 
   // Upload script used to gain network statistics  
   uploadScript();
-  runScript();
+  runScript("boot");
   // set up the LCD's number of columns and rows: 
   lcd.begin(16, 2);
-  // Print a message to the LCD.
-  lcd.print("hello, world.");
+  lcd.setCursor(0, 0);
+  lcd.print("Dryer:  ");
+  lcd.setCursor(0, 1);
+  lcd.print("Washer: ");
   
   counter[WASHER] = 0;
   counter[DRYER] = 0;
@@ -80,12 +84,33 @@ void loop()
     {
       default:
       case stateInit_e:
+        if(LOW == digitalRead(pins[i]))
+        {
+          state[i] = stateRunning_e;
+          lcd.setCursor(8, 1 - i);
+          lcd.print("Running");
+        }
       break;
       case stateRunning_e:
+        if(HIGH == digitalRead(pins[i]))
+        {
+          counter[i] = millis();
+          state[i] = stateUnknown_e;
+        }
       break;
       case stateUnknown_e:
-      break;
-      case stateDone_e:
+        if(LOW == digitalRead(pins[i]))
+        {
+          state[i] = stateRunning_e;
+        }
+        if((millis() - counter[i]) > END_OF_CYCLE_TIMEOUT)
+        {
+          // One minute without any current pulse.
+          lcd.setCursor(8, 1 - i);
+          lcd.print("Done   ");  
+          runScript(message[i]);    
+          state[i] = stateInit_e;
+        }
       break;
     }
   }
@@ -101,7 +126,7 @@ void uploadScript()
   File script = FileSystem.open("/tmp/sendmail.sh", FILE_WRITE);
   // Shell script header 
   script.print("#!/bin/sh\n");
-  script.print("echo -e \"FROM: test@example.com\nreply-to: test@example.com\nHello, world \" | ssmtp -vvv test@gmail.com\n");
+  script.print("echo -e \"FROM: laundry@suds.com\nreply-to: laundry@suds.com\nThe $1 is done. \" | ssmtp -vvv test@gmail.com\n");
   script.close();  // close the file
 
   // Make the script executable
@@ -114,12 +139,13 @@ void uploadScript()
 
 
 // this function run the script and read the output data
-void runScript()
+void runScript(String message)
 {
   // Run the script and show results on the Serial
   Process myscript;
   myscript.begin("/tmp/sendmail.sh");
-  myscript.run();
+  myscript.addParameter(message);
+  myscript.runAsynchronously();
 
   String output = "";
 
