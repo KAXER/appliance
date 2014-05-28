@@ -1,0 +1,8 @@
+// Aplicacion para detectar cuando tu lavadora ha terminado su ciclo y te envie un mensaje con arduino YUN
+// Referencias: https://docs.google.com/document/d/19xsTuiPoz836snXu6PrUnoH6Z47BYMBuVB_K-JmNv_k/edit#heading=h.rd9skgdikfb
+//Arduino Yun
+//Enclosure (not strictly required but recommended)
+//Display (not strictly recommended but handy for debugging)
+//Current sensors such as: https://www.sparkfun.com/products/11005
+//Small proto board such as: http://www.adafruit.com/products/1608
+//here: http://forum.arduino.cc/index.php?topic=202361.0
